@@ -184,6 +184,11 @@ h2::after {
   border-radius: 4px;
 }
 
+.value:hover {
+  cursor: pointer;
+  background: #e0e0e0;
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;
