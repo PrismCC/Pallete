@@ -16,10 +16,10 @@
         </div>
         <div class="info-item">
           <span class="label">RGB:</span>
-          <code class="value">RGB({{ color.r }}, {{ color.g }}, {{ color.b }})</code>
+          <code class="value">({{ color.r }}, {{ color.g }}, {{ color.b }})</code>
         </div>
+        <span class="label">Tag:</span>
         <div class="info-item tags">
-          <span class="label">标签:</span>
           <span
               v-for="tag in color.tags"
               :key="tag"
@@ -34,11 +34,10 @@
           </span>
         </div>
         <div class="info-item" v-if="color.introduction">
-          <div class="label">颜色介绍</div>
+          <div class="label">简介</div>
           <p class="introduction">{{ color.introduction }}</p>
         </div>
         <div class="info-item" v-if="color.poetry">
-          <div class="label">相关诗句</div>
           <blockquote class="poetry">{{ color.poetry }}</blockquote>
         </div>
       </div>
@@ -47,7 +46,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import {computed} from 'vue'
 
 const props = defineProps({
   color: {
@@ -179,6 +178,7 @@ h2::after {
   flex-wrap: wrap;
   gap: 0.4rem;
   align-items: center;
+  margin-top: 0.4rem;
 }
 
 .tag {
