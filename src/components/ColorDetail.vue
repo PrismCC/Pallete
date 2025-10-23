@@ -12,11 +12,11 @@
         <h2>{{ color.name }}</h2>
         <div class="info-item">
           <span class="label">HEX:</span>
-          <code class="value">{{ color.hex }}</code>
+          <code class="value" @click.stop="copyHex">{{ color.hex }}</code>
         </div>
         <div class="info-item">
           <span class="label">RGB:</span>
-          <code class="value">({{ color.r }}, {{ color.g }}, {{ color.b }})</code>
+          <code class="value" @click.stop="copyRgb">({{ color.r }}, {{ color.g }}, {{ color.b }})</code>
         </div>
         <span class="label">Tag:</span>
         <div class="info-item tags">
@@ -55,7 +55,18 @@ const props = defineProps({
   }
 })
 
-defineEmits(['close'])
+const emit = defineEmits(['close', 'toast'])
+const copyHex = () => {
+  navigator.clipboard.writeText(props.color.hex)
+      .then(() => emit('toast', 'HEX码已复制'))
+      .catch(() => emit('toast', '复制失败'))
+}
+const copyRgb = () => {
+  const rgbText = `rgb(${props.color.r}, ${props.color.g}, ${props.color.b})`
+  navigator.clipboard.writeText(rgbText)
+      .then(() => emit('toast', 'RGB值已复制'))
+      .catch(() => emit('toast', '复制失败'))
+}
 
 // tag 颜色映射（与ColorCard保持同步）
 const tagColors = {
