@@ -11,12 +11,14 @@
     </div>
     <ToastMessage :toasts="toasts" />
   </div>
-  <ColorDetail
-      v-if="selectedColor"
-      :color="selectedColor"
-      @close="selectedColor = null"
-      @toast="addToast"
-  />
+  <transition name="modal">
+    <ColorDetail
+        v-if="selectedColor"
+        :color="selectedColor"
+        @close="selectedColor = null"
+        @toast="addToast"
+    />
+  </transition>
 </template>
 
 <script setup>
@@ -74,5 +76,17 @@ h1 {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 4rem 2rem;
   padding: 1rem;
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: 0.3s ease-in-out;
+  transition-property: opacity, transform;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
 }
 </style>
