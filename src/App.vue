@@ -9,8 +9,8 @@
           @click="showColorDetail"
       />
     </div>
-    <ToastMessage :toasts="toasts" />
   </div>
+  <ToastMessage :toasts="toasts" />
   <transition name="modal">
     <ColorDetail
         v-if="selectedColor"
