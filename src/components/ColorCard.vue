@@ -16,7 +16,7 @@
             class="tag"
             :style="{
               backgroundColor: tagColors[tag] || '#f0f0f0',
-              color: getTextColor(tagColors[tag])
+              color: '#666'
             }"
         >
           {{ tag }}
@@ -27,29 +27,9 @@
 </template>
 
 <script setup>
-// tag 颜色映射
-const tagColors = {
-  '红': '#FFC1C180',
-  '橘': '#FFE0C180',
-  '黄': '#FEFFC180',
-  '绿': '#E4FFC180',
-  '青': '#C1FFF480',
-  '蓝': '#C1DCFF80',
-  '紫': '#D6C1FF80',
-  '粉': '#FFC1ED80',
-  '白': '#FFFFFF80',
-  '灰': '#DCDCDC80',
-  '黑': '#AFAFAF80',
-  '棕': '#C5B08F80'
-}
+import {inject} from "vue";
 
-const getTextColor = (hex) => {
-  if (!hex) return '#666'
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return (r * 0.299 + g * 0.587 + b * 0.114) > 186 ? '#333' : '#666'
-}
+const tagColors = inject('tagColors')
 
 defineProps({
   color: {

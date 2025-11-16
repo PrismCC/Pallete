@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import {provide, ref} from 'vue'
 import ColorCard from './components/ColorCard.vue'
 import ColorDetail from './components/ColorDetail.vue'
 import ToastMessage from './components/ToastMessage.vue'
@@ -32,6 +32,23 @@ const selectedColor = ref(null)
 const showColorDetail = (color) => {
   selectedColor.value = color
 }
+
+// tag 颜色映射
+const tagColors = {
+  '红': '#FFC1C180',
+  '橘': '#FFE0C180',
+  '黄': '#FEFFC180',
+  '绿': '#E4FFC180',
+  '青': '#C1FFF480',
+  '蓝': '#C1DCFF80',
+  '紫': '#D6C1FF80',
+  '粉': '#FFC1ED80',
+  '白': '#FFFFFF80',
+  '灰': '#DCDCDC80',
+  '黑': '#AFAFAF80',
+  '棕': '#C5B08F80'
+}
+provide('tagColors', tagColors)
 
 fetch('/colors.json')
     .then(response => response.json())
