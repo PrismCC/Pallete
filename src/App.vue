@@ -1,6 +1,6 @@
 <template>
+  <h1 class="vertical-title">中国传统色卡</h1>
   <div class="container">
-    <h1>中国传统色卡</h1>
     <div class="grid-container">
       <ColorCard
           v-for="color in colors"
@@ -76,10 +76,33 @@ body {
   color: black;
 }
 
+.vertical-title {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 120px;
+  background: #000;
+  color: white;
+  margin: 0;
+  padding: 2rem 1.5rem;
+  writing-mode: vertical-lr;
+  text-orientation: upright;
+  font-size: 3em;
+  letter-spacing: 0.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+}
+
 .container {
-  max-width: 1200px;
+  max-width: calc(1500px - 120px);
+  width: 100%;
+  padding: 2rem 2rem 2rem 1rem;
   margin: 0 auto;
-  padding: 2rem;
+  transform: translateX(60px);
 }
 
 h1 {
