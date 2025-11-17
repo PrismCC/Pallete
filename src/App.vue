@@ -18,8 +18,16 @@
       >
         {{ tag }}
       </span>
-      <!-- 重置按钮 -->
-      <span class="reset-btn" @click="resetTags" title="重置筛选">🔄</span>
+      <div class="filter-buttons">
+        <span class="reset-btn" @click="handleReset">🔄</span>
+        <span
+            class="favorite-filter-btn"
+            :class="{ active: isFavoritesMode }"
+            @click="toggleFavoritesMode"
+        >
+          {{ isFavoritesMode ? '★' : '☆' }}
+        </span>
+      </div>
     </div>
     <div class="grid-container">
       <ColorCard
@@ -30,7 +38,7 @@
       />
     </div>
   </div>
-  <ToastMessage :toasts="toasts" />
+  <ToastMessage :toasts="toasts"/>
   <transition name="modal">
     <ColorDetail
         v-if="selectedColor"
@@ -42,7 +50,7 @@
 </template>
 
 <script setup>
-import {computed, provide, ref} from 'vue'
+import {computed, onMounted, provide, ref} from 'vue'
 import ColorCard from './components/ColorCard.vue'
 import ColorDetail from './components/ColorDetail.vue'
 import ToastMessage from './components/ToastMessage.vue'
@@ -68,7 +76,6 @@ const tagColors = {
   '黑': '#AFAFAF80',
   '棕': '#C5B08F80'
 }
-provide('tagColors', tagColors)
 
 fetch('/colors.json')
     .then(response => response.json())
@@ -79,32 +86,56 @@ fetch('/colors.json')
 const toasts = ref([])
 const addToast = (message) => {
   const id = Date.now() + Math.random().toString(36).slice(2)
-  toasts.value.unshift({ id, message })
+  toasts.value.unshift({id, message})
   setTimeout(() => {
     toasts.value = toasts.value.filter(t => t.id !== id)
   }, 5000)
 }
 
 const selectedTags = ref([])
+const favorites = ref([])
+const isFavoritesMode = ref(false)
+
+onMounted(() => {
+  const saved = localStorage.getItem('favorites')
+  if (saved) favorites.value = JSON.parse(saved)
+})
 
 const toggleTag = (tag) => {
   const index = selectedTags.value.indexOf(tag)
+  index === -1
+      ? selectedTags.value.push(tag)
+      : selectedTags.value.splice(index, 1)
+}
+
+const toggleFavorite = (colorName) => {
+  const index = favorites.value.indexOf(colorName)
   if (index === -1) {
-    selectedTags.value.push(tag)
+    favorites.value.push(colorName)
   } else {
-    selectedTags.value.splice(index, 1)
+    favorites.value.splice(index, 1)
   }
+  localStorage.setItem('favorites', JSON.stringify(favorites.value))
+}
+
+const toggleFavoritesMode = () => {
+  isFavoritesMode.value = !isFavoritesMode.value
+  if (isFavoritesMode.value) selectedTags.value = []
 }
 
 // 过滤后的颜色列表
 const filteredColors = computed(() => {
-  if (!selectedTags.value.length) return colors.value
-  return colors.value.filter(color =>
-      selectedTags.value.every(tag => color.tags?.includes(tag))
-  )
+  const sourceColors = isFavoritesMode.value
+      ? colors.value.filter(c => favorites.value.includes(c.name))
+      : colors.value
+  return selectedTags.value.length
+      ? sourceColors.filter(c =>
+          selectedTags.value.every(t => c.tags?.includes(t))
+      )
+      : sourceColors
 })
 
-const tagOrder = ['红','橘','黄','绿','青','蓝','紫','粉','白','灰','黑','棕']
+const tagOrder = ['红', '橘', '黄', '绿', '青', '蓝', '紫', '粉', '白', '灰', '黑', '棕']
 
 // 标签可用性判断
 const isTagAvailable = (tag) => {
@@ -124,10 +155,15 @@ const handleTagOut = (tag, event) => {
   }
 }
 
-// 重置逻辑
-const resetTags = () => {
+const handleReset = () => {
+  isFavoritesMode.value = false
   selectedTags.value = []
 }
+
+provide('tagColors', tagColors)
+provide('favorites', favorites)
+provide('toggleFavorite', toggleFavorite)
+
 </script>
 
 <style>
@@ -202,7 +238,7 @@ h1 {
   padding: 0.8rem 1rem;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .tag {
@@ -211,9 +247,8 @@ h1 {
   border: 1px solid #e0e0e0;
   font-size: 0.9em;
   cursor: pointer;
-  transition:
-      background-color 0.2s ease,
-      transform 0.1s ease;
+  transition: background-color 0.2s ease,
+  transform 0.1s ease;
 }
 
 .tag:not(.disabled):hover {
@@ -223,6 +258,12 @@ h1 {
 .tag.disabled {
   cursor: not-allowed;
   pointer-events: none;
+}
+
+.filter-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
 }
 
 .reset-btn {
@@ -245,4 +286,45 @@ h1 {
   transition-duration: 0.3s;
 }
 
+.favorite-filter-btn {
+  font-size: 1.4em;
+  padding: 0.1em 0.3em;
+  line-height: 1;
+  border-radius: 8px;
+  display: inline-block;
+  margin-left: auto;
+}
+
+/* 收藏按钮动画 */
+.favorite-filter-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #FFD700; /* 黄色 */
+  cursor: pointer;
+}
+/* 悬停效果 */
+.favorite-filter-btn:hover {
+  transform: scale(1.2);
+  filter: brightness(1.1);
+}
+/* 点击动画 */
+.favorite-filter-btn:active {
+  transform: scale(0.9);
+}
+/* 收藏状态 */
+.filled {
+  color: #FFD700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+/* 添加平滑的缩放过渡 */
+.star {
+  display: inline-block;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.toast-enter-active {
+  transition:
+      transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 0.5s ease-out;
+}
 </style>

@@ -9,6 +9,9 @@
 
       <!-- 右侧信息展示区域 -->
       <div class="info-pane">
+        <button class="favorite-btn" @click.stop="toggleFavorite(color.name)">
+          <span :class="['star', { 'filled': isFavorite }]">{{ isFavorite ? '★' : '☆' }}</span>
+        </button>
         <h2>{{ color.name }}</h2>
         <div class="info-item">
           <span class="label">HEX:</span>
@@ -48,12 +51,9 @@
 <script setup>
 import {computed, inject} from 'vue'
 
-const props = defineProps({
-  color: {
-    type: Object,
-    required: true
-  }
-})
+const props = defineProps({ color: Object })
+const favorites = inject('favorites')
+const toggleFavorite = inject('toggleFavorite')
 
 const emit = defineEmits(['close', 'toast'])
 const copyHex = () => {
@@ -83,6 +83,10 @@ const insetShadowColor = computed(() => {
   const rgb = props.color.hex.slice(1, 7).match(/.{2}/g)
   return `rgba(${rgb.map(x => parseInt(x, 16)).join(',')}, 0.3)`
 })
+
+const isFavorite = computed(() =>
+    favorites.value.includes(props.color.name)
+)
 </script>
 
 <style scoped>
@@ -122,6 +126,50 @@ const insetShadowColor = computed(() => {
   padding: 2rem;
   overflow-y: auto;
   background: linear-gradient(to bottom, #fafafa, #fff 15%);
+  position: relative;
+}
+
+.favorite-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* 收藏按钮动画 */
+.favorite-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #FFD700; /* 黄色 */
+  cursor: pointer;
+}
+/* 悬停效果 */
+.favorite-btn:hover .star {
+  transform: scale(1.2);
+  filter: brightness(1.1);
+}
+/* 点击动画 */
+.favorite-btn:active .star {
+  transform: scale(0.9);
+}
+/* 收藏状态 */
+.filled {
+  color: #FFD700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+/* 添加平滑的缩放过渡 */
+.star {
+  display: inline-block;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.toast-enter-active {
+  transition:
+      transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 0.5s ease-out;
 }
 
 h2 {
