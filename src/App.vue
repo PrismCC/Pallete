@@ -145,7 +145,7 @@ const isTagAvailable = (tag) => {
 // 鼠标悬停效果处理
 const handleTagHover = (tag, event) => {
   if (!selectedTags.value.includes(tag) && isTagAvailable(tag)) {
-    event.target.style.backgroundColor = `${tagColors[tag]}CC`  // 添加透明度
+    event.target.style.backgroundColor = tagColors[tag]
   }
 }
 
