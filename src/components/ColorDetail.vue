@@ -6,12 +6,23 @@
           class="color-pane"
           :style="{ backgroundColor: color.hex, boxShadow: `inset 0 0 12px ${insetShadowColor}` }"
       ></div>
-
       <!-- 右侧信息展示区域 -->
       <div class="info-pane">
-        <button class="favorite-btn" @click.stop="toggleFavorite(color.name)">
-          <span :class="['star', { 'filled': isFavorite }]">{{ isFavorite ? '★' : '☆' }}</span>
-        </button>
+        <div class="top-buttons">
+          <button class="favorite-btn" @click.stop="toggleFavorite(color.name)">
+            <span :class="['star', { 'filled': isFavorite }]">{{ isFavorite ? '★' : '☆' }}</span>
+          </button>
+
+          <!-- 添加的垃圾桶按钮 -->
+          <button
+              v-if="color.custom"
+              class="delete-btn"
+              @click.stop="confirmDelete"
+          >
+            🗑️
+          </button>
+        </div>
+
         <h2>{{ color.name }}</h2>
         <div class="info-item">
           <span class="label">HEX:</span>
@@ -47,15 +58,15 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import {computed, inject} from 'vue'
-
-const props = defineProps({ color: Object })
+const props = defineProps({
+  color: Object,
+  isCustom: Boolean
+})
 const favorites = inject('favorites')
 const toggleFavorite = inject('toggleFavorite')
-
-const emit = defineEmits(['close', 'toast'])
+const emit = defineEmits(['close', 'toast', 'delete'])
 const copyHex = () => {
   navigator.clipboard.writeText(props.color.hex)
       .then(() => emit('toast', 'HEX码已复制'))
@@ -67,26 +78,30 @@ const copyRgb = () => {
       .then(() => emit('toast', 'RGB值已复制'))
       .catch(() => emit('toast', '复制失败'))
 }
-
 // tag 颜色映射（与ColorCard保持同步）
 const tagColors = inject('tagColors')
-
 // 生成边框颜色（比背景色深15%）
 const adjustBorderColor = (hex) => {
   if (!hex) return '#ccc'
   const rgb = hex.slice(1, 7).match(/.{2}/g)
   return `rgb(${rgb.map(x => Math.max(0, parseInt(x, 16) - 40)).join(',')})`
 }
-
 // 生成内阴影颜色（降低亮度）
 const insetShadowColor = computed(() => {
   const rgb = props.color.hex.slice(1, 7).match(/.{2}/g)
   return `rgba(${rgb.map(x => parseInt(x, 16)).join(',')}, 0.3)`
 })
-
 const isFavorite = computed(() =>
     favorites.value.includes(props.color.name)
 )
+// 删除确认
+const confirmDelete = () => {
+  // if (confirm(`确定要删除 "${props.color.name}" 吗？`)) {
+  //   emit('delete', props.color)
+  //   emit('close')
+  // }
+  emit('delete', props.color)
+}
 </script>
 
 <style scoped>
@@ -261,5 +276,39 @@ h2::after {
   .info-pane {
     overflow-y: visible;
   }
+}
+
+/* 添加顶部按钮容器 */
+.top-buttons {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+}
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  border-radius: 4px;
+}
+.delete-btn:hover {
+  background-color: #ffe6e6;
+  transform: scale(1.1);
+}
+.delete-btn:active {
+  transform: scale(0.9);
+}
+/* 调整收藏按钮位置 */
+.favorite-btn {
+  position: static;
+  top: auto;
+  right: auto;
 }
 </style>

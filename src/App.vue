@@ -28,12 +28,14 @@
         >
           {{ isFavoritesMode ? '★' : '☆' }}
         </span>
+        <!-- 添加自定义颜色按钮 -->
+        <span class="add-color-btn" @click="showAddColorModal = true">➕</span>
       </div>
     </div>
     <div class="grid-container">
       <ColorCard
           v-for="color in filteredColors"
-          :key="color.name"
+          :key="color.name + (color.custom ? '-custom' : '')"
           :color="color"
           @click="showColorDetail"
       />
@@ -46,22 +48,30 @@
         :color="selectedColor"
         @close="selectedColor = null"
         @toast="addToast"
+        @delete="deleteColor"
     />
   </transition>
-</template>
 
+  <!-- 添加自定义颜色模态框 -->
+  <AddCustomColor
+      :show="showAddColorModal"
+      :tagOrder="tagOrder"
+      :tagColors="tagColors"
+      @close="showAddColorModal = false"
+      @save="addCustomColor"
+  />
+</template>
 <script setup>
-import {computed, onMounted, provide, ref} from 'vue'
+import { computed, onMounted, provide, ref } from 'vue'
 import ColorCard from './components/ColorCard.vue'
 import ColorDetail from './components/ColorDetail.vue'
 import ToastMessage from './components/ToastMessage.vue'
-
+import AddCustomColor from './components/AddCustomColor.vue'
 const colors = ref([])
 const selectedColor = ref(null)
 const showColorDetail = (color) => {
   selectedColor.value = color
 }
-
 // tag 颜色映射
 const tagColors = {
   '红': '#FFC1C180',
@@ -77,38 +87,81 @@ const tagColors = {
   '黑': '#AFAFAF80',
   '棕': '#C5B08F80'
 }
+const LOCAL_STORAGE_CUSTOM_COLORS_KEY = 'customColors'
+// 加载数据
+onMounted(() => {
+  const savedFavorites = localStorage.getItem('favorites')
+  if (savedFavorites) favorites.value = JSON.parse(savedFavorites)
 
-fetch('/colors.json')
-    .then(response => response.json())
-    .then(data => {
-      colors.value = Object.values(data)
-    })
+  // 加载自定义颜色
+  const savedCustomColors = localStorage.getItem(LOCAL_STORAGE_CUSTOM_COLORS_KEY)
+  if (savedCustomColors) {
+    customColors.value = JSON.parse(savedCustomColors)
+  }
 
+  // 从JSON加载标准颜色
+  fetch('/colors.json')
+      .then(response => response.json())
+      .then(data => {
+        colors.value = [...Object.values(data), ...customColors.value]
+      })
+})
+const customColors = ref([]) // 存储自定义颜色
 const toasts = ref([])
 const addToast = (message) => {
   const id = Date.now() + Math.random().toString(36).slice(2)
-  toasts.value.unshift({id, message})
+  toasts.value.unshift({ id, message })
   setTimeout(() => {
     toasts.value = toasts.value.filter(t => t.id !== id)
   }, 5000)
 }
-
 const selectedTags = ref([])
 const favorites = ref([])
 const isFavoritesMode = ref(false)
+const showAddColorModal = ref(false)
+// 添加自定义颜色
+const addCustomColor = (color) => {
+  // 添加到自定义颜色列表
+  customColors.value.push(color)
 
-onMounted(() => {
-  const saved = localStorage.getItem('favorites')
-  if (saved) favorites.value = JSON.parse(saved)
-})
+  // 更新主颜色列表
+  colors.value.push(color)
 
+  // 保存到localStorage
+  localStorage.setItem(
+      LOCAL_STORAGE_CUSTOM_COLORS_KEY,
+      JSON.stringify(customColors.value)
+  )
+
+  addToast(`"${color.name}"已添加到颜色库`)
+}
+// 删除自定义颜色
+const deleteColor = (color) => {
+  // 从自定义颜色列表中移除
+  customColors.value = customColors.value.filter(c => c.name !== color.name)
+
+  // 从主颜色列表中移除
+  colors.value = colors.value.filter(c => c.name !== color.name)
+
+  // 更新localStorage
+  localStorage.setItem(
+      LOCAL_STORAGE_CUSTOM_COLORS_KEY,
+      JSON.stringify(customColors.value)
+  )
+
+  addToast(`"${color.name}"已删除`)
+
+  // 如果删除的是当前查看的颜色，清除选中状态
+  if (selectedColor.value && selectedColor.value.name === color.name) {
+    selectedColor.value = null
+  }
+}
 const toggleTag = (tag) => {
   const index = selectedTags.value.indexOf(tag)
   index === -1
       ? selectedTags.value.push(tag)
       : selectedTags.value.splice(index, 1)
 }
-
 const toggleFavorite = (colorName) => {
   const index = favorites.value.indexOf(colorName)
   if (index === -1) {
@@ -118,12 +171,10 @@ const toggleFavorite = (colorName) => {
   }
   localStorage.setItem('favorites', JSON.stringify(favorites.value))
 }
-
 const toggleFavoritesMode = () => {
   isFavoritesMode.value = !isFavoritesMode.value
   if (isFavoritesMode.value) selectedTags.value = []
 }
-
 // 过滤后的颜色列表
 const filteredColors = computed(() => {
   const sourceColors = isFavoritesMode.value
@@ -135,36 +186,29 @@ const filteredColors = computed(() => {
       )
       : sourceColors
 })
-
 const tagOrder = ['红', '橘', '黄', '绿', '青', '蓝', '紫', '粉', '白', '灰', '黑', '棕']
-
 // 标签可用性判断
 const isTagAvailable = (tag) => {
   return filteredColors.value.some(color => color.tags?.includes(tag))
 }
-
 // 鼠标悬停效果处理
 const handleTagHover = (tag, event) => {
   if (!selectedTags.value.includes(tag) && isTagAvailable(tag)) {
     event.target.style.backgroundColor = tagColors[tag]
   }
 }
-
 const handleTagOut = (tag, event) => {
   if (!selectedTags.value.includes(tag)) {
     event.target.style.backgroundColor = '#f0f0f0'
   }
 }
-
 const handleReset = () => {
   isFavoritesMode.value = false
   selectedTags.value = []
 }
-
 provide('tagColors', tagColors)
 provide('favorites', favorites)
 provide('toggleFavorite', toggleFavorite)
-
 </script>
 
 <style>
@@ -329,4 +373,21 @@ h1 {
       transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
       opacity 0.5s ease-out;
 }
+
+.add-color-btn {
+  font-size: 1.4em;
+  padding: 0.1em 0.3em;
+  line-height: 1;
+  border-radius: 8px;
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.add-color-btn:hover {
+  transform: scale(1.2);
+}
+.add-color-btn:active {
+  transform: scale(0.9);
+}
+
 </style>
