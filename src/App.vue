@@ -10,6 +10,7 @@
           :style="{
           backgroundColor: selectedTags.includes(tag) ? tagColors[tag] : '#f0f0f0',
           color: isTagAvailable(tag) ? '#333' : '#aaa',
+          border: selectedTags.includes(tag) ? `1px solid #7f7f7f` : '1px solid #e0e0e0'
         }"
           :class="{ disabled: !isTagAvailable(tag) }"
           @mouseover="handleTagHover(tag, $event)"
@@ -233,9 +234,10 @@ h1 {
 .filter-container {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.7rem;
   margin-bottom: 2rem;
   padding: 0.8rem 1rem;
+  min-height: 2rem;
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
