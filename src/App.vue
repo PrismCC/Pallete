@@ -321,6 +321,7 @@ h1 {
   display: inline-block;
   transform-origin: center;
   margin-left: auto;
+  cursor: pointer;
 }
 
 .reset-btn:hover {
@@ -333,7 +334,7 @@ h1 {
 }
 
 .favorite-filter-btn {
-  font-size: 1.4em;
+  font-size: 1.5em;
   padding: 0.1em 0.3em;
   line-height: 1;
   border-radius: 8px;
