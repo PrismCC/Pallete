@@ -333,17 +333,13 @@ h1 {
   transition-duration: 0.3s;
 }
 
+/* 收藏按钮 */
 .favorite-filter-btn {
   font-size: 1.5em;
   padding: 0.1em 0.3em;
   line-height: 1;
   border-radius: 8px;
   display: inline-block;
-  margin-left: auto;
-}
-
-/* 收藏按钮动画 */
-.favorite-filter-btn {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: #FFD700; /* 黄色 */
   cursor: pointer;

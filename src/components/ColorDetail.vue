@@ -9,14 +9,14 @@
       <!-- 右侧信息展示区域 -->
       <div class="info-pane">
         <div class="top-buttons">
-          <button class="favorite-btn" @click.stop="toggleFavorite(color.name)">
+          <button class="top-button favorite-btn" @click.stop="toggleFavorite(color.name)">
             <span :class="['star', { 'filled': isFavorite }]">{{ isFavorite ? '★' : '☆' }}</span>
           </button>
 
           <!-- 添加的垃圾桶按钮 -->
           <button
               v-if="color.custom"
-              class="delete-btn"
+              class="top-button delete-btn"
               @click.stop="confirmDelete"
           >
             🗑️
@@ -61,8 +61,7 @@
 <script setup>
 import {computed, inject} from 'vue'
 const props = defineProps({
-  color: Object,
-  isCustom: Boolean
+  color: Object
 })
 const favorites = inject('favorites')
 const toggleFavorite = inject('toggleFavorite')
@@ -83,23 +82,37 @@ const tagColors = inject('tagColors')
 // 生成边框颜色（比背景色深15%）
 const adjustBorderColor = (hex) => {
   if (!hex) return '#ccc'
-  const rgb = hex.slice(1, 7).match(/.{2}/g)
-  return `rgb(${rgb.map(x => Math.max(0, parseInt(x, 16) - 40)).join(',')})`
+  // 处理短 hex 代码 (如 #fff)
+  const normalizedHex = hex.length === 4
+    ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+    : hex;
+
+  // 解析为 RGB
+  const r = parseInt(normalizedHex.substr(1, 2), 16);
+  const g = parseInt(normalizedHex.substr(3, 2), 16);
+  const b = parseInt(normalizedHex.substr(5, 2), 16);
+
+  // 深色化并确保不小于 0
+  return `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})`
 }
 // 生成内阴影颜色（降低亮度）
 const insetShadowColor = computed(() => {
-  const rgb = props.color.hex.slice(1, 7).match(/.{2}/g)
-  return `rgba(${rgb.map(x => parseInt(x, 16)).join(',')}, 0.3)`
+  // 处理短 hex 代码 (如 #fff)
+  const normalizedHex = props.color.hex.length === 4
+    ? `#${props.color.hex[1]}${props.color.hex[1]}${props.color.hex[2]}${props.color.hex[2]}${props.color.hex[3]}${props.color.hex[3]}`
+    : props.color.hex;
+
+  const r = parseInt(normalizedHex.substr(1, 2), 16);
+  const g = parseInt(normalizedHex.substr(3, 2), 16);
+  const b = parseInt(normalizedHex.substr(5, 2), 16);
+
+  return `rgba(${r}, ${g}, ${b}, 0.3)`
 })
 const isFavorite = computed(() =>
     favorites.value.includes(props.color.name)
 )
 // 删除确认
 const confirmDelete = () => {
-  // if (confirm(`确定要删除 "${props.color.name}" 吗？`)) {
-  //   emit('delete', props.color)
-  //   emit('close')
-  // }
   emit('delete', props.color)
 }
 </script>
@@ -154,37 +167,11 @@ const confirmDelete = () => {
   cursor: pointer;
 }
 
-/* 收藏按钮动画 */
-.favorite-btn {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #FFD700; /* 黄色 */
-  cursor: pointer;
-}
-/* 悬停效果 */
-.favorite-btn:hover .star {
-  transform: scale(1.2);
-  filter: brightness(1.1);
-}
-/* 点击动画 */
-.favorite-btn:active .star {
-  transform: scale(0.9);
-}
-/* 收藏状态 */
-.filled {
-  color: #FFD700;
-  text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
-}
 /* 添加平滑的缩放过渡 */
 .star {
   display: inline-block;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center;
-}
-
-.toast-enter-active {
-  transition:
-      transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
-      opacity 0.5s ease-out;
 }
 
 h2 {
@@ -286,7 +273,7 @@ h2::after {
   display: flex;
   gap: 8px;
 }
-.delete-btn {
+.top-button {
   background: none;
   border: none;
   font-size: 24px;
@@ -298,6 +285,16 @@ h2::after {
   transition: all 0.3s;
   border-radius: 4px;
 }
+.favorite-btn {
+  color: #FFD700; /* 黄色 */
+}
+.favorite-btn:hover .star {
+  transform: scale(1.2);
+  filter: brightness(1.1);
+}
+.favorite-btn:active .star {
+  transform: scale(0.9);
+}
 .delete-btn:hover {
   background-color: #ffe6e6;
   transform: scale(1.1);
@@ -306,9 +303,4 @@ h2::after {
   transform: scale(0.9);
 }
 /* 调整收藏按钮位置 */
-.favorite-btn {
-  position: static;
-  top: auto;
-  right: auto;
-}
 </style>
