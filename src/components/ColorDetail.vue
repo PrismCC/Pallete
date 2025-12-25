@@ -9,10 +9,6 @@
       <!-- 右侧信息展示区域 -->
       <div class="info-pane">
         <div class="top-buttons">
-          <button class="top-button favorite-btn" @click.stop="toggleFavorite(color.name)">
-            <span :class="['star', { 'filled': isFavorite }]">{{ isFavorite ? '★' : '☆' }}</span>
-          </button>
-
           <!-- 添加的垃圾桶按钮 -->
           <button
               v-if="color.custom"
@@ -20,6 +16,14 @@
               @click.stop="confirmDelete"
           >
             🗑️
+          </button>
+          <!-- 加入配色组按钮 -->
+          <button class="top-button add-to-palette-btn" @click.stop="handleAddToPalette">
+            ➕<span class="add-text">加入配色组</span>
+          </button>
+
+          <button class="top-button favorite-btn" @click.stop="toggleFavorite(color.name)">
+            <span :class="['star', { 'filled': isFavorite }]">{{ isFavorite ? '★' : '☆' }}</span>
           </button>
         </div>
 
@@ -65,7 +69,7 @@ const props = defineProps({
 })
 const favorites = inject('favorites')
 const toggleFavorite = inject('toggleFavorite')
-const emit = defineEmits(['close', 'toast', 'delete'])
+const emit = defineEmits(['close', 'toast', 'delete', 'addToPalette'])
 const copyHex = () => {
   navigator.clipboard.writeText(props.color.hex)
       .then(() => emit('toast', 'HEX码已复制'))
@@ -111,6 +115,11 @@ const insetShadowColor = computed(() => {
 const isFavorite = computed(() =>
     favorites.value.includes(props.color.name)
 )
+const handleAddToPalette = () => {
+  emit('addToPalette', props.color)
+  emit('toast', `${props.color.name} 已加入配色组`)
+}
+
 // 删除确认
 const confirmDelete = () => {
   emit('delete', props.color)
@@ -158,17 +167,14 @@ const confirmDelete = () => {
 }
 
 .favorite-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   background: none;
   border: none;
-  font-size: 24px;
   cursor: pointer;
 }
 
 /* 添加平滑的缩放过渡 */
 .star {
+  font-size: 28px;
   display: inline-block;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center;
@@ -271,7 +277,8 @@ h2::after {
   top: 10px;
   right: 10px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  z-index: 10;
 }
 .top-button {
   background: none;
@@ -303,4 +310,40 @@ h2::after {
   transform: scale(0.9);
 }
 /* 调整收藏按钮位置 */
+
+/* Add to palette button styles */
+.add-to-palette-btn {
+  color: #667eea; /* 紫色 */
+}
+
+.add-to-palette-btn:hover {
+  background-color: #f0f0ff; /* 淡紫色背景 */
+  transform: scale(1.1);
+}
+
+.add-to-palette-btn:active {
+  transform: scale(0.9);
+}
+
+/* 加入配色组文字样式 - 默认隐藏 */
+.add-text {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #667eea;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 10;
+  margin-top: 4px;
+}
+
+/* 鼠标悬浮时显示文字 */
+.add-to-palette-btn:hover .add-text {
+  opacity: 1;
+}
 </style>
