@@ -158,11 +158,19 @@
             v-for="(palette, index) in savedPalettes"
             :key="index"
             class="saved-palette-item"
-            @click="selectPalette(palette)"
           >
             <div class="palette-item-header">
               <h4 class="palette-item-name">{{ palette.name }}</h4>
-              <span class="palette-item-count">{{ palette.colors.length }} 种颜色</span>
+              <div class="palette-item-actions">
+                <span class="palette-item-count">{{ palette.colors.length }} 种颜色</span>
+                <button
+                  class="palette-delete-btn"
+                  @click.stop="handleDeleteSavedPalette(index)"
+                  title="删除配色组"
+                >
+                  🗑️
+                </button>
+              </div>
             </div>
             <div class="palette-item-colors">
               <div
@@ -171,12 +179,13 @@
                 class="palette-item-color-preview"
                 :style="{ backgroundColor: color.hex }"
                 title="点击加载配色组"
+                @click="selectPalette(palette)"
               ></div>
-              <div v-if="palette.colors.length > 5" class="more-colors-indicator">
+              <div v-if="palette.colors.length > 5" class="more-colors-indicator" @click="selectPalette(palette)">
                 +{{ palette.colors.length - 5 }}
               </div>
             </div>
-            <div class="palette-item-date">
+            <div class="palette-item-date" @click="selectPalette(palette)">
               {{ new Date(palette.createdAt).toLocaleString('zh-CN') }}
             </div>
           </div>
@@ -410,6 +419,27 @@ const selectPalette = (palette) => {
 
   // 显示提示
   addToast(`${palette.name} 已加载`)
+}
+
+// 删除已保存的配色组
+const handleDeleteSavedPalette = (index) => {
+  // 获取当前已保存的配色组
+  let saved = JSON.parse(localStorage.getItem('savedPalettes') || '[]')
+
+  // 获取要删除的配色组名称
+  const paletteName = saved[index].name
+
+  // 从数组中删除该配色组
+  saved.splice(index, 1)
+
+  // 保存回localStorage
+  localStorage.setItem('savedPalettes', JSON.stringify(saved))
+
+  // 更新savedPalettes ref
+  savedPalettes.value = [...saved]
+
+  // 显示提示
+  addToast(`${paletteName} 已删除`)
 }
 
 // 复制hex值功能
@@ -1085,6 +1115,32 @@ h1 {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.8rem;
+}
+
+.palette-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.palette-delete-btn {
+  background: none;
+  color: #999;
+  border: none;
+  font-size: 1.1em;
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.palette-delete-btn:hover {
+  background: #ff6b6b;
+  color: white;
+  transform: scale(1.1);
 }
 
 .palette-item-name {
